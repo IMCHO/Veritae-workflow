@@ -1,21 +1,21 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "veritae-workflow",
-  "description": "AI-native product workflow for iOS + Java Spring teams — role-based agents that hand off via shared artifacts (PRD → OpenAPI → code)",
+  "description": "AI-native product workflow for iOS + Java Spring teams — role-based agents that hand off via shared artifacts (PRD → OpenAPI → code → review)",
   "owner": {
     "name": "IMCHO"
   },
   "plugins": [
     {
       "name": "veritae-workflow",
-      "version": "0.1.0",
-      "description": "Role-based subagents (planner, api-architect, ios-dev, spring-dev) for AI-native product development across iOS and Spring",
+      "version": "0.2.0",
+      "description": "Role-based subagents (planner, api-architect, ios-dev, spring-dev, + 3 specialized reviewers). Per-role model selection (Opus for planning/review, Sonnet for coding), ADR + lessons-learned history conventions built in.",
       "author": {
         "name": "IMCHO"
       },
       "source": "./plugins/veritae-workflow",
       "category": "workflow",
-      "keywords": ["ios", "swift", "spring", "java", "agents", "workflow", "openapi", "prd"],
+      "keywords": ["ios", "swift", "spring", "java", "agents", "workflow", "openapi", "prd", "review", "adr"],
       "homepage": "https://github.com/IMCHO/Veritae-workflow"
     }
   ]
