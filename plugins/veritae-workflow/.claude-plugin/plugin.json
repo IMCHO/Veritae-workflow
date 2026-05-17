@@ -1,0 +1,9 @@
+{
+  "name": "veritae-workflow",
+  "version": "0.1.0",
+  "description": "Role-based subagents (planner, api-architect, ios-dev, spring-dev) for AI-native product development across iOS and Spring",
+  "author": {
+    "name": "IMCHO"
+  },
+  "keywords": ["ios", "swift", "spring", "java", "agents", "workflow", "openapi", "prd"]
+}
