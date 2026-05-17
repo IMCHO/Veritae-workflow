@@ -1,86 +1,113 @@
 # veritae-workflow plugin
 
-iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 AI 워크플로** Claude Code 플러그인. v0.2.0부터 전용 리뷰어, 역할별 모델 선택, ADR + lessons-learned 히스토리 컨벤션을 포함합니다.
+iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 AI 워크플로** Claude Code 플러그인. v0.3.0부터 디자이너와 QA 에이전트가 추가되어 9개 역할로 파이프라인이 완결됩니다.
 
-## 포함된 서브에이전트
+## 포함된 서브에이전트 (9개)
 
-### Pipeline
+### 기획·설계
 
 | 에이전트 | 모델 | 산출물 | 입력 |
 |---|---|---|---|
 | `planner` | opus | PRD, 수락기준, 작업 분해 | 한 줄짜리 요구사항 |
+| `designer` | opus | 디자인 명세 (화면·토큰·a11y) | PRD §4 + Figma (MCP) |
 | `api-architect` | opus | OpenAPI 3.x 스펙 + ADR | PRD §5 (API 초안) |
+
+### 구현
+
+| 에이전트 | 모델 | 산출물 | 입력 |
+|---|---|---|---|
 | `ios-dev` | sonnet | Swift 코드 + 테스트 | OpenAPI + 디자인 명세 |
 | `spring-dev` | sonnet | Java 코드 + 테스트 | OpenAPI + 도메인 요건 |
 
-### Review gate
+### 검증
 
 | 에이전트 | 모델 | 범위 |
 |---|---|---|
+| `qa` | opus | 테스트 시나리오 + 커버리지 매트릭스 |
 | `ios-reviewer` | opus | Swift 6 동시성, retain cycle, SwiftUI 라이프사이클, 접근성 |
 | `spring-reviewer` | opus | N+1, 트랜잭션 경계, 보안, validation |
 | `api-contract-reviewer` | opus | BREAKING 판별, iOS·Spring 영향 검증, prior ADR 정합성 |
 
-리뷰어는 Claude Code 내장 `/review`, `/security-review`와 **병행** 사용합니다 — 도메인 전용 함정에 집중합니다.
+리뷰어는 Claude Code 내장 `/review`, `/security-review`와 **병행** — 도메인 전용 함정에 집중합니다.
 
 ## 파이프라인
 
 ```
-한 줄 요구 ─▶ planner ─▶ PRD ─▶ api-architect ─▶ OpenAPI ─▶ api-contract-reviewer
-                                                    │
-                              ┌─────────────────────┴─────────────────────┐
-                              ▼                                           ▼
-                          ios-dev                                     spring-dev
-                              │                                           │
-                              ▼                                           ▼
-                       ios-reviewer                              spring-reviewer
-                              └──────────▶ /review, /security-review ◀────┘
+한 줄 요구
+    │
+    ▼
+[planner] ──▶ PRD ──┬──▶ [designer]  ──▶ design spec ────┐
+                     │                                     │
+                     ├──▶ [api-architect] ──▶ OpenAPI ─────┼──▶ [ios-dev]    ──▶ [ios-reviewer]
+                     │              │                      │
+                     │              ▼                      └──▶ [spring-dev] ──▶ [spring-reviewer]
+                     │     [api-contract-reviewer]
+                     │
+                     └──▶ [qa] ──▶ test plan ──▶ (dev 에이전트가 자동화)
 ```
 
-산출물(파일)이 핸드오프 인터페이스입니다.
+산출물(파일)이 핸드오프 인터페이스입니다 — 에이전트끼리 직접 호출하지 않고 사람이 중간에 개입할 수 있게 설계됐습니다.
 
 ## 모델 선택 정책
 
-- **Opus**: 모호성 처리/cross-cutting 결정/놓친 버그 캐치가 중요한 곳 (planner, api-architect, 모든 reviewer)
+- **Opus**: 모호성 처리/cross-cutting 결정/놓친 버그 캐치/엣지 케이스 추론이 중요한 곳 (planner, designer, api-architect, qa, 모든 reviewer)
 - **Sonnet**: 코드 작성 (ios-dev, spring-dev) — 빈도 높고 충분히 capable
-- `inherit`로 두지 않은 이유: 역할별 적합도가 다르고, 사용자가 메인 세션을 어느 모델로 띄우든 결과 품질이 일관되도록
+- 사용자 override: `CLAUDE_CODE_SUBAGENT_MODEL` 환경 변수 또는 호출 시점 `model` 파라미터
 
-사용자가 모델을 override하려면 `CLAUDE_CODE_SUBAGENT_MODEL` 환경 변수 또는 호출 시점 `model` 파라미터 사용.
+## Figma MCP (designer 전용)
+
+designer 에이전트는 Figma MCP 도구가 있으면 활용. **유료 계정 불필요**:
+
+- **공식 Remote MCP Server**: Free 포함 모든 plan
+- **Framelink** (커뮤니티): PAT 기반, Free 가능
+
+MCP 미설정 시 사용자에게 Figma URL 또는 디자인 export를 요청. 추측으로 채우지 않음.
 
 ## 히스토리·반복 실수 방지 컨벤션
 
-타겟 리포(iOS·Spring·기타)에 다음 3종 자산이 생성·유지됩니다.
+타겟 리포에 다음 자산이 생성·유지됩니다.
 
-| 레벨 | 위치 | 작성자 |
+| 경로 | 작성자 | 용도 |
 |---|---|---|
-| Commit message | git log | 모든 dev 에이전트 (WHY/WHAT/RISK 포맷) |
-| ADR | `docs/decisions/{NNNN}-{slug}.md` | planner, api-architect, dev (아키텍처 결정 시) |
-| Lessons learned | `docs/lessons-learned.md` | reviewer 에이전트 (반복 실수 카탈로그) |
+| `docs/prd/` | planner | 기능 요건서 |
+| `docs/design/` | designer | 디자인 명세 |
+| `docs/test-plans/` | qa | 테스트 시나리오 |
+| `api/openapi.yaml` | api-architect | API 단일 진실 원본 |
+| `docs/decisions/` | 다수 | ADR (비자명한 결정) |
+| `docs/lessons-learned.md` | reviewer | 반복 실수 카탈로그 |
 
-자세한 포맷은 [`docs/conventions.md`](docs/conventions.md) 참조.
+자세한 포맷은 [`docs/conventions.md`](docs/conventions.md).
 
-### 반복 실수 방지 메커니즘
+### 반복 실수 방지 메커니즘 (LL-NNN)
 
-1. 모든 dev 에이전트는 작업 시작 시 `docs/lessons-learned.md`를 읽고 알려진 함정을 회피
-2. 리뷰어가 같은 패턴을 2회 이상 발견하면 신규 LL 엔트리를 추가
-3. 다음 PR부터 dev 에이전트가 그 LL을 학습 → 재발 방지
+1. 리뷰어가 같은 패턴을 2회 이상 보면 `docs/lessons-learned.md`에 신규 엔트리 추가 (`LL-NNN` 접두사 + 3자리 zero-pad)
+2. 다음 PR부터 dev 에이전트가 작업 시작 시 이 파일을 읽어 알려진 함정 회피
+3. qa 에이전트는 모든 LL 엔트리마다 회귀 테스트 1개씩 작성
+4. ID는 영원히 안정 — 항목이 deprecate돼도 번호 재사용 안 함
+
+LL-NNN은 commit message, PR 코멘트, 코드 주석 어디서나 1단어로 인용 가능 → "이거 LL-007 케이스야"로 끝.
 
 ## 사용 예
 
 ```
 # 단계별 실행
 @planner 사용자가 프로필 이메일을 수정할 수 있게 해주세요
-# → docs/prd/2026-05-17-edit-profile-email.md + 필요 시 docs/decisions/NNNN-*.md
+# → docs/prd/2026-05-17-edit-profile-email.md
+
+@designer docs/prd/2026-05-17-edit-profile-email.md의 §4를 구체화
+# → docs/design/edit-profile-email.md
 
 @api-architect docs/prd/2026-05-17-edit-profile-email.md §5를 OpenAPI로 확정
-# → api/openapi.yaml + docs/decisions/NNNN-api-*.md (BREAKING이면)
+# → api/openapi.yaml + 필요시 docs/decisions/NNNN-api-*.md
 
 @api-contract-reviewer 방금 변경된 api/openapi.yaml 검토
-# → BREAKING 판별 + iOS·Spring 영향 보고
 
-# iOS와 Spring 작업은 병렬 실행
-@ios-dev openapi.yaml의 PATCH /users/me/email를 iOS에 구현
-@spring-dev openapi.yaml의 PATCH /users/me/email를 Spring에 구현
+@qa docs/prd/2026-05-17-edit-profile-email.md 기반 테스트 플랜
+# → docs/test-plans/2026-05-17-edit-profile-email.md
+
+# 구현은 병렬
+@ios-dev openapi.yaml + design spec 기반 iOS 구현
+@spring-dev openapi.yaml 기반 Spring 구현
 
 @ios-reviewer 현재 브랜치 검토
 @spring-reviewer 현재 브랜치 검토
@@ -88,15 +115,16 @@ iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 A
 
 ## 정착 팁
 
-각 리포의 `CLAUDE.md`에 한 줄만 추가해도 에이전트 추측 정확도가 크게 올라갑니다:
+각 리포의 `CLAUDE.md`에 한 줄만 추가해도 추측 정확도가 크게 올라갑니다:
 
 ```markdown
 # 이 리포는 SwiftUI + TCA + Tuist. 네트워크는 URLSession + async/await.
-# History 컨벤션: veritae-workflow 플러그인을 따른다 (docs/conventions.md).
+# History 컨벤션: veritae-workflow 플러그인 (docs/conventions.md 참조).
 ```
 
-## 한계
+## 한계 / 다음 라운드
 
-- `designer`, `qa` 역할은 다음 라운드. designer는 Figma MCP 의존 (Free 플랜 + Remote MCP 가능).
-- 산출물 경로 (`docs/prd/`, `api/openapi.yaml`, `docs/decisions/`, `docs/lessons-learned.md`)는 기본값. 리포 컨벤션이 다르면 각 리포 `CLAUDE.md`에서 오버라이드.
-- 리뷰는 도메인 전용. 일반 코드 리뷰는 Claude Code 내장 `/review`, `/security-review` 병행 사용.
+- `/feature` 슬래시 명령으로 9단계 파이프라인 일괄 실행 (v0.4 후보)
+- PRD/OpenAPI/디자인 체크리스트를 Skill로 분리 가능
+- 산출물 경로는 기본값 — 리포 컨벤션이 다르면 `CLAUDE.md`에서 오버라이드
+- 리뷰는 도메인 전용. 일반 코드 품질은 Claude Code 내장 `/review`, `/security-review` 병행
