@@ -1,6 +1,6 @@
 # veritae-workflow plugin
 
-iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 AI 워크플로** Claude Code 플러그인. v0.4.0에서 Haiku 기반 `convention-checker`가 추가되어 무거운 리뷰어 호출 전 빠른 사전 패스를 제공합니다 (총 10개 역할).
+**Veritae 앱**(iOS + Java Spring 서버)을 개발하기 위해 만든 **역할 기반 AI 워크플로** Claude Code 플러그인. Veritae 안에서 실제로 굴려본 구조를 부산물로 공개합니다. v0.4.0에서 Haiku 기반 `convention-checker`가 추가되어 무거운 리뷰어 호출 전 빠른 사전 패스를 제공합니다 (총 10개 역할).
 
 ## 포함된 서브에이전트 (10개)
 

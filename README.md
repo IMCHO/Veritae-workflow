@@ -1,6 +1,6 @@
 # Veritae-workflow
 
-iOS 앱 + Java Spring 서버를 함께 다루는 제품팀을 위한 **AI 네이티브 워크플로** Claude Code 마켓플레이스.
+**Veritae** — iOS 앱과 Java Spring 서버로 구성된 제품 — 을 개발하기 위해 만든 **AI 네이티브 워크플로** Claude Code 마켓플레이스. 같은 구조(iOS + Spring)를 쓰는 다른 팀이 포크해서 쓸 수 있도록 **부산물로 공개**해 둡니다.
 
 기획 → 디자인 → API 계약 → 양쪽 구현 → 테스트 → 리뷰가 같은 산출물(PRD, 디자인 명세, OpenAPI, ADR, 테스트 플랜, lessons-learned)을 단일 진실 원본으로 삼아 움직이게 만듭니다.
 

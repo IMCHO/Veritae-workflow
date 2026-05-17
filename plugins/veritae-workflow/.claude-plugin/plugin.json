@@ -1,7 +1,7 @@
 {
   "name": "veritae-workflow",
   "version": "0.4.0",
-  "description": "10 role-based subagents (planner, api-architect, designer, ios-dev, spring-dev, qa, convention-checker, + 3 reviewers) for AI-native product development across iOS and Spring. Per-role model selection (Opus / Sonnet / Haiku), ADR + lessons-learned history conventions built in.",
+  "description": "10 role-based subagents (planner, api-architect, designer, ios-dev, spring-dev, qa, convention-checker, + 3 reviewers) powering AI-native development of Veritae, an iOS + Spring app. Released as a byproduct so other iOS+Spring teams can fork it. Per-role model selection (Opus / Sonnet / Haiku), ADR + lessons-learned history conventions built in.",
   "author": {
     "name": "IMCHO"
   },
