@@ -150,6 +150,7 @@ touch docs/lessons-learned.md
 | qa | opus | 드묾 | 엣지 케이스 추론 |
 | ios-dev | sonnet | 잦음 | 코딩 작업, 비용 합리화 |
 | spring-dev | sonnet | 잦음 | 코딩 작업 |
+| convention-checker | haiku | 잦음 | 기계적 정규식/glob 1차 패스, 비용/지연 최소화 |
 | ios-reviewer | opus | 잦음 | 놓친 버그 캐치 = 고레버리지 |
 | spring-reviewer | opus | 잦음 | 동일 |
 | api-contract-reviewer | opus | 보통 | BREAKING 판별 책임 |

@@ -8,14 +8,14 @@
   "plugins": [
     {
       "name": "veritae-workflow",
-      "version": "0.3.0",
-      "description": "9 role-based subagents (planner, api-architect, designer, ios-dev, spring-dev, qa, + 3 specialized reviewers). Per-role model selection (Opus for planning/design/qa/review, Sonnet for coding), ADR + lessons-learned history conventions built in.",
+      "version": "0.4.0",
+      "description": "10 role-based subagents (planner, api-architect, designer, ios-dev, spring-dev, qa, convention-checker, + 3 specialized reviewers). Per-role model selection (Opus for planning/design/qa/review, Sonnet for coding, Haiku for fast lint/convention pre-pass), ADR + lessons-learned history conventions built in.",
       "author": {
         "name": "IMCHO"
       },
       "source": "./plugins/veritae-workflow",
       "category": "workflow",
-      "keywords": ["ios", "swift", "spring", "java", "agents", "workflow", "openapi", "prd", "review", "adr", "figma", "qa"],
+      "keywords": ["ios", "swift", "spring", "java", "agents", "workflow", "openapi", "prd", "review", "adr", "figma", "qa", "lint", "convention"],
       "homepage": "https://github.com/IMCHO/Veritae-workflow"
     }
   ]

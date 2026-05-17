@@ -19,9 +19,9 @@ iOS 앱 + Java Spring 서버를 함께 다루는 제품팀을 위한 **AI 네이
 
 ## 포함된 플러그인
 
-### `veritae-workflow` (v0.3.0)
+### `veritae-workflow` (v0.4.0)
 
-**9개 역할** 기반 서브에이전트. 역할별 모델 선택, ADR + lessons-learned 히스토리 컨벤션.
+**10개 역할** 기반 서브에이전트. 역할별 모델 선택, ADR + lessons-learned 히스토리 컨벤션.
 
 | 에이전트 | 모델 | 역할 |
 |---|---|---|
@@ -31,6 +31,7 @@ iOS 앱 + Java Spring 서버를 함께 다루는 제품팀을 위한 **AI 네이
 | `ios-dev` | sonnet | Swift 코드 + 테스트 |
 | `spring-dev` | sonnet | Java 코드 + 테스트 |
 | `qa` | opus | 테스트 시나리오 + 커버리지 매트릭스 |
+| `convention-checker` | haiku | 산출물 경로·파일명·금지 패턴·LL-NNN Detection 사전 패스 |
 | `ios-reviewer` | opus | Swift 6 동시성·메모리·SwiftUI 라이프사이클·접근성 |
 | `spring-reviewer` | opus | N+1·트랜잭션·보안·validation |
 | `api-contract-reviewer` | opus | BREAKING 판별·prior ADR 정합성 |
@@ -57,10 +58,10 @@ iOS 앱 + Java Spring 서버를 함께 다루는 제품팀을 위한 **AI 네이
 
 - [x] ~~`designer` 서브에이전트 (Figma MCP 연동)~~ — v0.3.0
 - [x] ~~`qa` 서브에이전트~~ — v0.3.0
-- [ ] `/feature` 슬래시 명령 (9단계 체인 자동 실행)
+- [x] ~~Haiku 기반 빠른 lint/convention 검사 에이전트~~ — v0.4.0 (`convention-checker`)
+- [ ] `/feature` 슬래시 명령 (10단계 체인 자동 실행)
 - [ ] PRD 템플릿, OpenAPI 체크리스트를 별도 **Skill**로 분리
 - [ ] 리포별 `CLAUDE.md` 표준 템플릿
-- [ ] Haiku 기반 빠른 lint/convention 검사 에이전트
 - [ ] 토이 기능 dogfood 결과 → 친로그 → 다음 버전 입력
 
 ## 기여

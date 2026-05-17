@@ -1,8 +1,8 @@
 # veritae-workflow plugin
 
-iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 AI 워크플로** Claude Code 플러그인. v0.3.0부터 디자이너와 QA 에이전트가 추가되어 9개 역할로 파이프라인이 완결됩니다.
+iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 AI 워크플로** Claude Code 플러그인. v0.4.0에서 Haiku 기반 `convention-checker`가 추가되어 무거운 리뷰어 호출 전 빠른 사전 패스를 제공합니다 (총 10개 역할).
 
-## 포함된 서브에이전트 (9개)
+## 포함된 서브에이전트 (10개)
 
 ### 기획·설계
 
@@ -24,11 +24,12 @@ iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 A
 | 에이전트 | 모델 | 범위 |
 |---|---|---|
 | `qa` | opus | 테스트 시나리오 + 커버리지 매트릭스 |
+| `convention-checker` | haiku | 산출물 경로·파일명, 금지 패턴, LL-NNN Detection 정규식의 빠른 기계적 점검 (의미 판단 X) |
 | `ios-reviewer` | opus | Swift 6 동시성, retain cycle, SwiftUI 라이프사이클, 접근성 |
 | `spring-reviewer` | opus | N+1, 트랜잭션 경계, 보안, validation |
 | `api-contract-reviewer` | opus | BREAKING 판별, iOS·Spring 영향 검증, prior ADR 정합성 |
 
-리뷰어는 Claude Code 내장 `/review`, `/security-review`와 **병행** — 도메인 전용 함정에 집중합니다.
+`convention-checker`는 Haiku로 빠르게 1차 패스를 끊어 무거운 Opus 리뷰어가 의미·아키텍처에 집중하도록 돕습니다. 리뷰어는 Claude Code 내장 `/review`, `/security-review`와도 **병행** — 도메인 전용 함정에 집중합니다.
 
 ## 파이프라인
 
@@ -38,13 +39,15 @@ iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 A
     ▼
 [planner] ──▶ PRD ──┬──▶ [designer]  ──▶ design spec ────┐
                      │                                     │
-                     ├──▶ [api-architect] ──▶ OpenAPI ─────┼──▶ [ios-dev]    ──▶ [ios-reviewer]
+                     ├──▶ [api-architect] ──▶ OpenAPI ─────┼──▶ [ios-dev]    ──▶ [convention-checker] ──▶ [ios-reviewer]
                      │              │                      │
-                     │              ▼                      └──▶ [spring-dev] ──▶ [spring-reviewer]
+                     │              ▼                      └──▶ [spring-dev] ──▶ [convention-checker] ──▶ [spring-reviewer]
                      │     [api-contract-reviewer]
                      │
                      └──▶ [qa] ──▶ test plan ──▶ (dev 에이전트가 자동화)
 ```
+
+`convention-checker`는 무거운 리뷰어 직전에 빠른 사전 패스로 들어갑니다 (선택 단계 — 건너뛰어도 됨, 비용 절감용).
 
 산출물(파일)이 핸드오프 인터페이스입니다 — 에이전트끼리 직접 호출하지 않고 사람이 중간에 개입할 수 있게 설계됐습니다.
 
@@ -52,6 +55,7 @@ iOS 앱 + Java Spring 서버를 함께 다루는 팀을 위한 **역할 기반 A
 
 - **Opus**: 모호성 처리/cross-cutting 결정/놓친 버그 캐치/엣지 케이스 추론이 중요한 곳 (planner, designer, api-architect, qa, 모든 reviewer)
 - **Sonnet**: 코드 작성 (ios-dev, spring-dev) — 빈도 높고 충분히 capable
+- **Haiku**: 기계적 정규식·glob 기반 사전 패스 (convention-checker) — 빠르고 저렴, Opus 리뷰어 전 1차 필터
 - 사용자 override: `CLAUDE_CODE_SUBAGENT_MODEL` 환경 변수 또는 호출 시점 `model` 파라미터
 
 ## Figma MCP (designer 전용)
@@ -109,6 +113,10 @@ LL-NNN은 commit message, PR 코멘트, 코드 주석 어디서나 1단어로 �
 @ios-dev openapi.yaml + design spec 기반 iOS 구현
 @spring-dev openapi.yaml 기반 Spring 구현
 
+# 무거운 리뷰 전 빠른 사전 패스 (선택)
+@convention-checker 현재 브랜치의 변경 파일 검사
+# → Fail 0건이면 ios-reviewer / spring-reviewer 진행, 1건 이상이면 먼저 수정
+
 @ios-reviewer 현재 브랜치 검토
 @spring-reviewer 현재 브랜치 검토
 ```
@@ -124,7 +132,7 @@ LL-NNN은 commit message, PR 코멘트, 코드 주석 어디서나 1단어로 �
 
 ## 한계 / 다음 라운드
 
-- `/feature` 슬래시 명령으로 9단계 파이프라인 일괄 실행 (v0.4 후보)
+- `/feature` 슬래시 명령으로 10단계 파이프라인 일괄 실행 (v0.5 후보)
 - PRD/OpenAPI/디자인 체크리스트를 Skill로 분리 가능
 - 산출물 경로는 기본값 — 리포 컨벤션이 다르면 `CLAUDE.md`에서 오버라이드
 - 리뷰는 도메인 전용. 일반 코드 품질은 Claude Code 내장 `/review`, `/security-review` 병행
